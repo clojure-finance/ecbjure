@@ -4,7 +4,7 @@ A pure Clojure library for accessing European Central Bank (ECB) data, starting 
 
 [![Clojars Project](https://img.shields.io/clojars/v/com.github.clojure-finance/ecbjure.svg)](https://clojars.org/com.github.clojure-finance/ecbjure)
 [![CI](https://github.com/clojure-finance/ecbjure/actions/workflows/ci.yml/badge.svg)](https://github.com/clojure-finance/ecbjure/actions/workflows/ci.yml)
-[![cljdoc](https://cljdoc.org/badge/com.github.clojure-finance/ecbjure)](https://cljdoc.org/d/com.github.clojure-finance/ecbjure)
+[![cljdoc](https://cljdoc.org/badge/com.github.clojure-finance/ecbjure)](https://cljdoc.org/d/com.github.clojure-finance/ecbjure/CURRENT)
 [![License](https://img.shields.io/badge/license-EPL--2.0-blue.svg)](LICENSE)
 
 ## Features
