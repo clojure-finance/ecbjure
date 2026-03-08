@@ -4,9 +4,11 @@
            [java.time.format DateTimeFormatter]))
 
 (def ecb-url
+  "ECB historical FX rates ZIP (daily reference rates since 1999, ~42 currencies)."
   "https://www.ecb.europa.eu/stats/eurofxref/eurofxref-hist.zip")
 
 (def ecb-daily-url
+  "ECB latest-day FX rates ZIP (single business day, updated daily)."
   "https://www.ecb.europa.eu/stats/eurofxref/eurofxref.zip")
 
 (def ^:private default-opts
