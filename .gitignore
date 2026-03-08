@@ -1,0 +1,25 @@
+# Clojure
+.cpcache/
+.clj-kondo/
+.lsp/
+.nrepl-port
+.rebel_readline_history
+pom.xml
+pom.xml.asc
+
+# Build output
+target/
+classes/
+
+# Java
+*.class
+*.jar
+
+# Editor
+.idea/
+*.iml
+.vscode/
+*.swp
+*~
+.DS_Store
+.clojure-mcp/
