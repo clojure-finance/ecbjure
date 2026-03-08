@@ -25,4 +25,4 @@ jobs:
           key: ${{ runner.os }}-m2-${{ hashFiles('deps.edn') }}
           restore-keys: ${{ runner.os }}-m2-
       - name: Run tests
-        run: clj -M:test
+        run: clojure -M:test
