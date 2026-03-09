@@ -7,7 +7,7 @@
 
 A pure Clojure library for accessing European Central Bank (ECB) data. It gives you
 authoritative, institutional-quality financial data — FX rates, interest rates, inflation,
-and more — through a clean, data-oriented API with no magic and no surprises.
+and more — through a clean, data-oriented API that stays close to the data.
 
 ## Why ecbjure?
 
