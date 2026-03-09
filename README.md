@@ -5,9 +5,8 @@
 [![cljdoc](https://cljdoc.org/badge/com.github.clojure-finance/ecbjure)](https://cljdoc.org/d/com.github.clojure-finance/ecbjure/CURRENT)
 [![License](https://img.shields.io/badge/license-EPL--2.0-blue.svg)](LICENSE)
 
-A pure Clojure library for accessing European Central Bank (ECB) data. It gives you
-authoritative, institutional-quality financial data — FX rates, interest rates, inflation,
-and more — through a clean, data-oriented API that stays close to the data.
+A pure Clojure library for accessing European Central Bank (ECB) data: historical FX
+rates, interest rates, inflation, and more.
 
 ## Why ecbjure?
 
@@ -87,7 +86,7 @@ to load from a local file or a custom source instead.
 (fx/convert c 100 "USD" "EUR" (LocalDate/of 2013 3 21))
 ;; => 77.46
 
-;; Omit target currency — defaults to EUR
+;; Omit target currency — returns EUR amount (EUR is the reference currency)
 (fx/convert c 100 "USD")
 ;; => 90.91
 ```
@@ -139,18 +138,18 @@ fx/ecb-daily-url  ;; "https://www.ecb.europa.eu/stats/eurofxref/eurofxref.zip"
 
 All errors are `ex-info`. Inspect `(ex-data e)` for context:
 
-| Condition | `:type` | Extra keys |
-|-----------|---------|------------|
-| Currency not in dataset | `:unknown-currency` | `:currency` |
-| Date outside available range | `:date-out-of-bounds` | `:currency` `:date` `:first-date` `:last-date` |
-| Date in range but no rate (weekend/holiday) | `:rate-not-found` | `:currency` `:date` |
+| Message | Cause | ex-data keys |
+|---------|-------|--------------|
+| `"Unknown currency"` | Currency code not in dataset | `:currency` |
+| `"Date outside currency bounds"` | Date out of range, no fallback | `:currency` `:date` `:first-date` `:last-date` |
+| `"Rate not found for date"` | Date in range but no rate (weekend/holiday) | `:currency` `:date` |
 
 ```clojure
 (try
   (fx/convert c 100 "USD" "EUR" (LocalDate/of 2024 1 6)) ; Saturday
   (catch clojure.lang.ExceptionInfo e
     (ex-data e)))
-;; => {:type :rate-not-found, :currency "USD", :date #object[LocalDate "2024-01-06"]}
+;; => {:currency "USD", :date #object[LocalDate "2024-01-06"]}
 ```
 
 To clamp out-of-bounds dates to the nearest available observation instead of throwing:
