@@ -10,6 +10,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 - `clojure-finance.ecbjure.sdmx/list-dataflows` — fetches all ~100 available ECB SDMX dataflows and returns a sorted map of `id → description`; parses SDMX 2.1 XML via JDK DOM (`javax.xml.parsers`) — no new dependencies
 - `list-dataflows-parse` test in `sdmx_test.clj` — fully offline, 3 assertions using an inline XML fixture; SDMX test suite now 6 tests, 26 assertions
+- `clojure-finance.ecbjure.sdmx/build-series-key` — compiles a dataflow name + dimensions vector into an SDMX series-key string; dimensions may be strings, `nil` (wildcard), or sets (sorted `+`-joined multi-value)
+- `clojure-finance.ecbjure.sdmx/exr-series-key` — EXR convenience builder; accepts a map with named keys (`:freq`, `:currency`, `:currency-denom`, `:exr-type`, `:exr-suffix`) with sensible defaults
+- `build-series-key-test` and `exr-series-key-test` in `sdmx_test.clj` — 9 assertions; SDMX test suite now 8 tests, 35 assertions
 
 ### Changed
 - `:fallback-on-wrong-date` (boolean) replaced by `:fallback` keyword — accepts `false` (default, throw on out-of-bounds), `:nearest`, `:before`, `:after`; `true` is a backward-compat alias for `:nearest`

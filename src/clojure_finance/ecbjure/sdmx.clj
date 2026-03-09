@@ -57,6 +57,45 @@
         query-str (str/join "&" (map (fn [[k v]] (str k "=" v)) all-params))]
     (str base "?" query-str)))
 
+(defn build-series-key
+  "Compile a dataflow name and a sequence of dimensions into an SDMX series-key string.
+
+  Each dimension element may be:
+    - a string  → used as-is
+    - nil       → wildcard \".\"
+    - a set     → elements sorted and joined with \"+\"
+
+  Example:
+    (build-series-key \"EXR\" [\"D\" #{\"USD\" \"JPY\"} nil \"SP00\" \"A\"])
+    ;; => \"EXR/D.JPY+USD..SP00.A\""
+  [dataflow dimensions]
+  (let [encode (fn [d]
+                 (cond
+                   (nil? d) ""
+                   (set? d) (str/join "+" (sort d))
+                   :else d))]
+    (str dataflow "/" (str/join "." (map encode dimensions)))))
+
+(defn exr-series-key
+  "Build an EXR series key from a map of named dimensions.
+
+  Keys (all optional):
+    :freq           - frequency code (default \"D\")
+    :currency       - string or set of currency codes (default wildcard)
+    :currency-denom - denominator currency (default \"EUR\")
+    :exr-type       - EXR type code (default \"SP00\")
+    :exr-suffix     - EXR variant suffix (default \"A\")
+
+  Example:
+    (exr-series-key {:currency #{\"USD\" \"JPY\"}})
+    ;; => \"EXR/D.JPY+USD.EUR.SP00.A\"
+
+    (exr-series-key {:freq \"M\" :currency \"GBP\"})
+    ;; => \"EXR/M.GBP.EUR.SP00.A\""
+  [{:keys [freq currency currency-denom exr-type exr-suffix]
+    :or {freq "D" currency-denom "EUR" exr-type "SP00" exr-suffix "A"}}]
+  (build-series-key "EXR" [freq currency currency-denom exr-type exr-suffix]))
+
 (defn- fetch-csv-lines [url-str]
   (with-open [stream (.openStream (.toURL (URI/create url-str)))
               rdr (BufferedReader. (InputStreamReader. stream "UTF-8"))]

@@ -15,7 +15,7 @@ A pure Clojure library for accessing European Central Bank (ECB) data, starting 
 - Load from ECB URL (default), local file, or any custom URL
 - Functional, data-oriented design — the converter is a plain Clojure map
 - No interpolation of missing rates — missing data throws, never fabricates
-- **SDMX client** — fetch interest rates, inflation, and other ECB series via `clojure-finance.ecbjure.sdmx`
+- **SDMX client** — fetch interest rates, inflation, and other ECB series via `clojure-finance.ecbjure.sdmx`; ergonomic series-key builders (`build-series-key`, `exr-series-key`) for composing multi-currency queries
 - `tech.ml.dataset` integration — wide and tidy/long format datasets (optional alias)
 
 ## Installation
@@ -231,6 +231,25 @@ Each observation is a map with `:time-period` (LocalDate), `:obs-value` (double)
 ;; List all ~100 available ECB dataflows
 (sdmx/list-dataflows)
 ;; => {"AME" "AMECO", "BKN" "Banknotes statistics", "EXR" "Exchange Rates", "ICP" "HICP", ...}
+```
+
+**Series-key builders:**
+
+```clojure
+;; Generic builder — strings, nil (wildcard), or sets (multi-value)
+(sdmx/build-series-key "EXR" ["D" #{"USD" "JPY"} nil "SP00" "A"])
+;; => "EXR/D.JPY+USD..SP00.A"
+
+;; EXR convenience — named keys with sensible defaults
+(sdmx/exr-series-key {:currency #{"USD" "JPY"}})
+;; => "EXR/D.JPY+USD.EUR.SP00.A"
+
+(sdmx/exr-series-key {:freq "M" :currency "GBP"})
+;; => "EXR/M.GBP.EUR.SP00.A"
+
+;; Compose with get-series
+(sdmx/get-series (sdmx/exr-series-key {:currency #{"USD" "JPY"}})
+                 {:last-n 5})
 ```
 
 ## License

@@ -117,3 +117,34 @@
       (is (= "Financial Markets" (get result "FM"))))
     (testing "is sorted"
       (is (= ["EXR" "FM" "ICP"] (keys result))))))
+
+(deftest build-series-key-test
+  (testing "string dimensions joined with dots"
+    (is (= "EXR/D.USD.EUR.SP00.A"
+           (sdmx/build-series-key "EXR" ["D" "USD" "EUR" "SP00" "A"]))))
+  (testing "nil dimension becomes wildcard dot"
+    (is (= "EXR/D..EUR.SP00.A"
+           (sdmx/build-series-key "EXR" ["D" nil "EUR" "SP00" "A"]))))
+  (testing "set dimension sorted and joined with +"
+    (is (= "EXR/D.JPY+USD.EUR.SP00.A"
+           (sdmx/build-series-key "EXR" ["D" #{"USD" "JPY"} "EUR" "SP00" "A"]))))
+  (testing "multiple nils"
+    (is (= "EXR/D.USD..."
+           (sdmx/build-series-key "EXR" ["D" "USD" nil nil nil])))))
+
+(deftest exr-series-key-test
+  (testing "defaults produce daily all-currencies key"
+    (is (= "EXR/D..EUR.SP00.A"
+           (sdmx/exr-series-key {}))))
+  (testing "single currency string"
+    (is (= "EXR/D.USD.EUR.SP00.A"
+           (sdmx/exr-series-key {:currency "USD"}))))
+  (testing "set of currencies sorted"
+    (is (= "EXR/D.JPY+USD.EUR.SP00.A"
+           (sdmx/exr-series-key {:currency #{"USD" "JPY"}}))))
+  (testing "monthly frequency"
+    (is (= "EXR/M.GBP.EUR.SP00.A"
+           (sdmx/exr-series-key {:freq "M" :currency "GBP"}))))
+  (testing "custom currency-denom"
+    (is (= "EXR/D.USD.CHF.SP00.A"
+           (sdmx/exr-series-key {:currency "USD" :currency-denom "CHF"})))))
