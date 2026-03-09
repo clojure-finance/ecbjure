@@ -225,6 +225,14 @@ Access broader ECB statistical data via `clojure-finance.ecbjure.sdmx`:
 
 Each observation is a map with `:time-period` (LocalDate), `:obs-value` (double), and all dimension columns from the ECB CSV response. No additional dependencies — uses `data.csv` and JDK HTTP.
 
+**Dataflow discovery:**
+
+```clojure
+;; List all ~100 available ECB dataflows
+(sdmx/list-dataflows)
+;; => {"AME" "AMECO", "BKN" "Banknotes statistics", "EXR" "Exchange Rates", "ICP" "HICP", ...}
+```
+
 ## License
 
 Copyright © 2026 clojure-finance

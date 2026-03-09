@@ -2,10 +2,11 @@
   (:require [clojure.data.csv :as csv]
             [clojure.java.io :as io]
             [clojure.string :as str])
-  (:import [java.io BufferedReader InputStreamReader]
+  (:import [java.io BufferedReader ByteArrayInputStream InputStreamReader]
            [java.net URI]
            [java.time LocalDate YearMonth]
-           [java.time.format DateTimeFormatter]))
+           [java.time.format DateTimeFormatter]
+           [javax.xml.parsers DocumentBuilderFactory]))
 
 (def ^:private base-url "https://data-api.ecb.europa.eu/service/data")
 
@@ -105,6 +106,8 @@
     :end-period    - ISO date string
     :last-n        - integer, return only the last N observations per series
     :first-n       - integer, return only the first N observations per series
+    :updated-after - ISO 8601 timestamp; only observations updated after this time are
+                     returned. E.g. \"2026-03-01T00:00:00Z\"
     :cast-fn       - coercion fn for OBS_VALUE (default: double)
     :na-values     - set of strings to treat as missing (default: #{\"\" \"NaN\" \"N/A\"})
 
@@ -113,13 +116,59 @@
     :obs-value     - numeric value (cast by :cast-fn)
     plus dimension columns from the CSV (e.g. :currency, :freq, :key, etc.)"
   ([series-key] (get-series series-key {}))
-  ([series-key {:keys [start-period end-period last-n first-n cast-fn na-values]
+  ([series-key {:keys [start-period end-period last-n first-n updated-after cast-fn na-values]
                 :as opts}]
    (let [params (cond-> {}
                   start-period (assoc "startPeriod" start-period)
                   end-period (assoc "endPeriod" end-period)
                   last-n (assoc "lastNObservations" last-n)
-                  first-n (assoc "firstNObservations" first-n))
+                  first-n (assoc "firstNObservations" first-n)
+                  updated-after (assoc "updatedAfter" updated-after))
          url (build-url series-key params)
          lines (fetch-csv-lines url)]
      (parse-sdmx-csv lines (select-keys opts [:cast-fn :na-values])))))
+
+(def ^:private dataflows-url
+  "https://data-api.ecb.europa.eu/service/dataflow/ECB")
+
+(def ^:private sdmx-str-ns
+  "http://www.sdmx.org/resources/sdmxml/schemas/v2_1/structure")
+
+(def ^:private sdmx-com-ns
+  "http://www.sdmx.org/resources/sdmxml/schemas/v2_1/common")
+
+(defn- fetch-bytes [^String url-str]
+  (with-open [s (.openStream (.toURL (URI/create url-str)))]
+    (.readAllBytes s)))
+
+(defn- node-seq [^org.w3c.dom.NodeList nl]
+  (for [i (range (.getLength nl))] (.item nl i)))
+
+(defn- parse-dataflow-xml [^bytes bs]
+  (let [factory (doto (DocumentBuilderFactory/newInstance)
+                  (.setNamespaceAware true))
+        doc (.parse (.newDocumentBuilder factory) (ByteArrayInputStream. bs))
+        nodes (.getElementsByTagNameNS doc sdmx-str-ns "Dataflow")]
+    (into (sorted-map)
+          (keep (fn [node]
+                  (let [id (.getAttribute node "id")
+                        names (.getElementsByTagNameNS node sdmx-com-ns "Name")
+                        nm (when (pos? (.getLength names))
+                             (.getTextContent (.item names 0)))]
+                    (when (and (seq id) nm)
+                      [id nm])))
+                (node-seq nodes)))))
+
+(defn list-dataflows
+  "Fetch all available ECB SDMX dataflows and return a sorted map of id -> description.
+
+  Queries the ECB SDMX 2.1 dataflow registry and parses the XML response.
+  Useful for discovering series keys to pass to `get-series`.
+
+  Returns a sorted map, e.g.:
+    {\"EXR\" \"Exchange Rates\"
+     \"ICP\" \"HICP\"
+     \"FM\"  \"Financial Markets\"
+     ...}"
+  []
+  (parse-dataflow-xml (fetch-bytes dataflows-url)))

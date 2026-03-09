@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+- `clojure-finance.ecbjure.sdmx/list-dataflows` — fetches all ~100 available ECB SDMX dataflows and returns a sorted map of `id → description`; parses SDMX 2.1 XML via JDK DOM (`javax.xml.parsers`) — no new dependencies
+- `list-dataflows-parse` test in `sdmx_test.clj` — fully offline, 3 assertions using an inline XML fixture; SDMX test suite now 6 tests, 26 assertions
+
 ## [0.1.2] - 2026-03-09
 
 ### Added

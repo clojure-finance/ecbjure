@@ -75,3 +75,45 @@
     (is (clojure.string/starts-with? sdmx/euribor-1w "FM")))
   (testing "estr-daily starts with FM"
     (is (clojure.string/starts-with? sdmx/estr-daily "FM"))))
+
+(deftest build-url-params
+  (let [build-url #'sdmx/build-url]
+    (testing "updated-after adds updatedAfter query param"
+      (let [url (build-url "EXR/D.USD.EUR.SP00.A" {"updatedAfter" "2026-03-01T00:00:00Z"})]
+        (is (clojure.string/includes? url "updatedAfter=2026-03-01T00:00:00Z"))))
+    (testing "format=csvdata is always present"
+      (let [url (build-url "EXR/D.USD.EUR.SP00.A" {})]
+        (is (clojure.string/includes? url "format=csvdata"))))))
+
+(def sample-dataflow-xml
+  "<?xml version='1.0' encoding='UTF-8'?>
+<mes:Structure xmlns:mes='http://www.sdmx.org/resources/sdmxml/schemas/v2_1/message'
+               xmlns:str='http://www.sdmx.org/resources/sdmxml/schemas/v2_1/structure'
+               xmlns:com='http://www.sdmx.org/resources/sdmxml/schemas/v2_1/common'>
+  <mes:Structures>
+    <str:Dataflows>
+      <str:Dataflow id='EXR'>
+        <com:Name xml:lang='en'>Exchange Rates</com:Name>
+      </str:Dataflow>
+      <str:Dataflow id='ICP'>
+        <com:Name xml:lang='en'>HICP</com:Name>
+      </str:Dataflow>
+      <str:Dataflow id='FM'>
+        <com:Name xml:lang='en'>Financial Markets</com:Name>
+      </str:Dataflow>
+    </str:Dataflows>
+  </mes:Structures>
+</mes:Structure>")
+
+(deftest list-dataflows-parse
+  (let [parse-xml #'sdmx/parse-dataflow-xml
+        bs (.getBytes sample-dataflow-xml "UTF-8")
+        result (parse-xml bs)]
+    (testing "returns a map"
+      (is (map? result)))
+    (testing "contains expected entries"
+      (is (= "Exchange Rates" (get result "EXR")))
+      (is (= "HICP" (get result "ICP")))
+      (is (= "Financial Markets" (get result "FM"))))
+    (testing "is sorted"
+      (is (= ["EXR" "FM" "ICP"] (keys result))))))
