@@ -26,9 +26,10 @@ state, no opaque object, and no hidden cache. You can inspect it in the REPL, pa
 through pipelines, and compose it freely.
 
 **Minimal dependencies.** The core library depends only on `org.clojure/data.csv`.
-Everything else — HTTP, ZIP, XML, date handling — comes from the JDK. Optional features
-(dataset output, CLI) are gated behind aliases and never pulled into your project unless
-you need them.
+HTTP fetching (`java.net.URL`), ZIP decompression (`java.util.zip`), XML parsing
+(`javax.xml.parsers`), and date arithmetic (`java.time`) all use the JDK directly —
+no third-party HTTP client or XML library needed. Optional features (dataset output, CLI)
+are gated behind aliases and never pulled into your project unless you need them.
 
 **Broad ECB coverage via SDMX.** Beyond FX rates, the included SDMX client gives you
 access to the full ECB statistical catalogue: EURIBOR, €STR, HICP inflation, and anything
