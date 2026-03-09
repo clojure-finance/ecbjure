@@ -15,6 +15,7 @@ A pure Clojure library for accessing European Central Bank (ECB) data, starting 
 - Load from ECB URL (default), local file, or any custom URL
 - Functional, data-oriented design — the converter is a plain Clojure map
 - No interpolation of missing rates — missing data throws, never fabricates
+- `tech.ml.dataset` integration — wide and tidy/long format datasets (optional alias)
 
 ## Installation
 
@@ -122,6 +123,34 @@ fx/ecb-url
 ;; => "https://www.ecb.europa.eu/stats/eurofxref/eurofxref-hist.zip"
 ```
 
+### Dataset Output (optional)
+
+Requires the `:dataset` alias (`techascent/tech.ml.dataset`):
+
+```clojure
+(require '[clojure-finance.ecbjure.dataset :as ds])
+
+;; Wide format — one row per date, one column per currency
+(ds/rates-wide c)
+;; => ecb-rates-wide [6846 43]:
+;; |      :date |    USD |    JPY | ... |
+;; |------------|-------:|-------:|
+;; | 1999-01-04 | 1.1789 | 133.73 | ... |
+;; | ...        |    ... |    ... | ... |
+
+;; Long/tidy format — one row per (date, currency) observation
+(ds/rates-long c)
+;; => ecb-rates-long [~280000 3]:
+;; |      :date | :currency |   :rate |
+;; |------------|-----------|--------:|
+;; | 1999-01-04 |       EUR |  1.0000 |
+;; | 1999-01-04 |       GBP |  0.7111 |
+;; | 1999-01-04 |       USD |  1.1789 |
+;; | ...        |       ... |     ... |
+```
+
+Start the REPL with both aliases: `clj -M:nrepl:dataset`
+
 ## Error Handling
 
 All errors are `ex-info` with a `:type` key:
@@ -171,7 +200,7 @@ Options: `--to <currency>`, `--date <yyyy-MM-dd>`, `--source <url-or-path>`.
 ## Roadmap
 
 - **Tier 2:** Thin SDMX REST client for broader ECB data — interest rates (ECB key rates, EURIBOR, €STR), inflation (HICP), money supply (M1/M2/M3), yield curves, banking statistics.
-- **Enhancements:** `tech.ml.dataset` output, `clj-yfinance` integration for live spot rates, date-based caching.
+- **Enhancements:** `clj-yfinance` integration for live spot rates, date-based caching.
 
 ## License
 
