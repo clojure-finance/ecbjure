@@ -62,8 +62,8 @@ com.github.clojure-finance/ecbjure {:mvn/version "0.1.2"}
 (fx/make-converter "/path/to/eurofxref-hist.zip")
 
 ;; With options
-(fx/make-converter fx/ecb-url {:fallback-on-wrong-date true
-                                :cast-fn                bigdec})
+(fx/make-converter fx/ecb-url {:fallback :nearest
+                                :cast-fn  bigdec})
 
 ;; From a seq of CSV lines (useful for testing or custom data)
 (fx/make-converter-from-lines lines opts)
@@ -74,7 +74,7 @@ com.github.clojure-finance/ecbjure {:mvn/version "0.1.2"}
 | Key | Default | Description |
 |-----|---------|-------------|
 | `:cast-fn` | `double` | Rate coercion function. Use `bigdec` for exact arithmetic. |
-| `:fallback-on-wrong-date` | `false` | Clamp to first/last available date when out of bounds. |
+| `:fallback` | `false` | Out-of-bounds date behaviour: `false` (throw), `:nearest`, `:before`, `:after`, or `true` (alias for `:nearest`). |
 | `:ref-currency` | `"EUR"` | Reference currency (triangulation pivot). |
 
 ### Conversion
@@ -169,7 +169,7 @@ All errors are `ex-info` with a `:type` key:
 ;; => {:type :rate-not-found, :currency "USD", :date #object[LocalDate "2024-01-06"]}
 ```
 
-Use `:fallback-on-wrong-date true` to clamp out-of-bounds dates to the nearest available boundary instead of throwing.
+Use `:fallback :nearest` (or `:before`/`:after`) to clamp out-of-bounds dates to a boundary instead of throwing.
 
 ## Design Notes
 

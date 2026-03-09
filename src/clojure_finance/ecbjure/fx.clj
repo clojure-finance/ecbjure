@@ -12,7 +12,7 @@
   "https://www.ecb.europa.eu/stats/eurofxref/eurofxref.zip")
 
 (def ^:private default-opts
-  {:fallback-on-wrong-date false
+  {:fallback false
    :ref-currency "EUR"
    :cast-fn double
    :na-values #{"" "N/A"}})
@@ -34,7 +34,8 @@
 (defn make-converter
   "Build a converter map from a source.
    source: nil (default) fetches latest data from ECB URL, or pass a URL string or file path.
-   opts: map with keys :fallback-on-wrong-date, :ref-currency, :cast-fn, :na-values."
+   opts: map with keys :fallback, :ref-currency, :cast-fn, :na-values.
+   :fallback - false (default, throw on out-of-bounds), :before, :after, :nearest, or true (alias for :nearest)."
   ([] (make-converter nil {}))
   ([source] (make-converter source {}))
   ([source opts]
@@ -47,7 +48,7 @@
       :currencies ccys
       :bounds bounds
       :ref-currency (:ref-currency opts)
-      :options (select-keys opts [:fallback-on-wrong-date :cast-fn])})))
+      :options (select-keys opts [:fallback :cast-fn])})))
 
 (defn make-converter-from-lines
   "Build a converter from an already-loaded seq of CSV lines."
@@ -61,35 +62,36 @@
       :currencies ccys
       :bounds bounds
       :ref-currency (:ref-currency opts)
-      :options (select-keys opts [:fallback-on-wrong-date :cast-fn])})))
+      :options (select-keys opts [:fallback :cast-fn])})))
 
 (defn- lookup-rate
-  "Look up the rate for a currency on a date, with optional fallback-on-wrong-date."
+  "Look up the rate for a currency on a date, with optional fallback.
+   :fallback can be false (throw on out-of-bounds), :before (clamp to boundary
+   in the before direction), :after (in the after direction), :nearest (closest boundary),
+   or true (backward-compat alias for :nearest)."
   [{:keys [rates bounds options]} currency date]
-  (let [date-map (rates currency)
-        {:keys [first-date last-date]} (bounds currency)
-        fallback? (:fallback-on-wrong-date options)]
-    (cond
-      (nil? date-map)
+  (let [date-map (rates currency)]
+    (if (nil? date-map)
       (throw (ex-info "Unknown currency" {:currency currency}))
-
-      (and (not fallback?) (or (.isBefore date first-date) (.isAfter date last-date)))
-      (throw (ex-info "Date outside currency bounds"
-                      {:currency currency :date date
-                       :first-date first-date :last-date last-date}))
-
-      fallback?
-      (let [clamped (cond (.isBefore date first-date) first-date
-                          (.isAfter date last-date) last-date
-                          :else date)]
-        (or (date-map clamped)
-            (throw (ex-info "Rate not found for date"
-                            {:currency currency :date clamped}))))
-
-      :else
-      (or (date-map date)
-          (throw (ex-info "Rate not found for date (missing / weekend?)"
-                          {:currency currency :date date}))))))
+      (let [{:keys [first-date last-date]} (bounds currency)
+            fallback (let [f (:fallback options)] (if (true? f) :nearest f))
+            out-of-bounds? (or (.isBefore date first-date) (.isAfter date last-date))]
+        (if (and out-of-bounds? (not fallback))
+          (throw (ex-info "Date outside currency bounds"
+                          {:currency currency :date date
+                           :first-date first-date :last-date last-date}))
+          (let [effective-date
+                (if out-of-bounds?
+                  (case fallback
+                    :before (if (.isBefore date first-date) first-date last-date)
+                    :after (if (.isAfter date last-date) last-date first-date)
+                    :nearest (cond (.isBefore date first-date) first-date
+                                   (.isAfter date last-date) last-date
+                                   :else date))
+                  date)]
+            (or (date-map effective-date)
+                (throw (ex-info "Rate not found for date"
+                                {:currency currency :date effective-date})))))))))
 
 (defn get-rate
   "Return the EUR-referenced rate for currency on date."
@@ -124,7 +126,9 @@
          ref ref-currency
          date (if date
                 (coerce-date date)
-                (last (keys (rates from))))
+                (if (rates from)
+                  (last (keys (rates from)))
+                  (last (keys (val (first rates))))))
          amount (cast-fn amount)]
      (cond
        (= from to)

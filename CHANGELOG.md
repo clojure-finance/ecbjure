@@ -11,6 +11,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `clojure-finance.ecbjure.sdmx/list-dataflows` — fetches all ~100 available ECB SDMX dataflows and returns a sorted map of `id → description`; parses SDMX 2.1 XML via JDK DOM (`javax.xml.parsers`) — no new dependencies
 - `list-dataflows-parse` test in `sdmx_test.clj` — fully offline, 3 assertions using an inline XML fixture; SDMX test suite now 6 tests, 26 assertions
 
+### Changed
+- `:fallback-on-wrong-date` (boolean) replaced by `:fallback` keyword — accepts `false` (default, throw on out-of-bounds), `:nearest`, `:before`, `:after`; `true` is a backward-compat alias for `:nearest`
+- `fx_test.clj` — updated fallback tests to cover all three modes; error-message expectations corrected to `"Date outside currency bounds"` for out-of-bounds dates
+
 ## [0.1.2] - 2026-03-09
 
 ### Added

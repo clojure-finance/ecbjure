@@ -53,18 +53,33 @@
     (is (thrown-with-msg? clojure.lang.ExceptionInfo #"Unknown currency"
                           (fx/convert c 100 "USD" "XXX"))))
 
-  (testing "missing rate (date in bounds but no data) throws"
-    (let [missing-date (LocalDate/of 2024 1 5)]
-      (is (thrown-with-msg? clojure.lang.ExceptionInfo #"Rate not found"
-                            (fx/convert c 100 "USD" "EUR" missing-date)))))
+  (testing "date outside bounds throws Date outside currency bounds"
+    (let [out-of-bounds (LocalDate/of 2024 1 5)]
+      (is (thrown-with-msg? clojure.lang.ExceptionInfo #"Date outside currency bounds"
+                            (fx/convert c 100 "USD" "EUR" out-of-bounds)))))
 
   (testing "date before first-date throws without fallback"
     (let [early (LocalDate/of 2000 1 1)]
-      (is (thrown-with-msg? clojure.lang.ExceptionInfo #"Rate not found"
+      (is (thrown-with-msg? clojure.lang.ExceptionInfo #"Date outside currency bounds"
                             (fx/convert c 100 "USD" "EUR" early)))))
 
-  (testing "date after last-date clamps with fallback-on-wrong-date"
-    (let [fc (fx/make-converter-from-lines sample-lines {:fallback-on-wrong-date true})
+  (testing ":nearest clamps date after last-date to last available"
+    (let [fc (fx/make-converter-from-lines sample-lines {:fallback :nearest})
+          late (LocalDate/of 2030 1 1)]
+      (is (approx= (/ 100.0 1.1) (fx/convert fc 100 "USD" "EUR" late)))))
+
+  (testing ":before clamps date before first-date to first available"
+    (let [fc (fx/make-converter-from-lines sample-lines {:fallback :before})
+          early (LocalDate/of 2000 1 1)]
+      (is (approx= (/ 100.0 1.0963) (fx/convert fc 100 "USD" "EUR" early)))))
+
+  (testing ":after clamps date after last-date to last available"
+    (let [fc (fx/make-converter-from-lines sample-lines {:fallback :after})
+          late (LocalDate/of 2030 1 1)]
+      (is (approx= (/ 100.0 1.1) (fx/convert fc 100 "USD" "EUR" late)))))
+
+  (testing "true (backward-compat) behaves like :nearest"
+    (let [fc (fx/make-converter-from-lines sample-lines {:fallback true})
           late (LocalDate/of 2030 1 1)]
       (is (approx= (/ 100.0 1.1) (fx/convert fc 100 "USD" "EUR" late))))))
 
@@ -82,7 +97,7 @@
 (deftest get-rate-test
   (is (approx= 1.0963 (fx/get-rate c "USD" d02)))
   (is (approx= 157.91 (fx/get-rate c "JPY" d02)))
-  (is (thrown-with-msg? clojure.lang.ExceptionInfo #"Rate not found"
+  (is (thrown-with-msg? clojure.lang.ExceptionInfo #"Date outside currency bounds"
                         (fx/get-rate c "USD" (LocalDate/of 2024 1 7)))))
 
 (deftest rate-history-test
