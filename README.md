@@ -221,7 +221,7 @@ Access broader ECB statistical data via `clojure-finance.ecbjure.sdmx`:
                  {:start-period "2024-01-01" :end-period "2024-01-31"})
 ```
 
-**Predefined constants:** `exr-daily`, `exr-monthly`, `euribor-1m`, `euribor-3m`, `euribor-6m`, `euribor-1y`, `euribor-overnight`, `estr-daily`, `hicp-euro-area`.
+**Predefined constants:** `exr-daily`, `exr-monthly`, `euribor-1w`, `euribor-1m`, `euribor-3m`, `euribor-6m`, `euribor-1y`, `euribor-overnight`, `estr-daily`, `hicp-euro-area`.
 
 Each observation is a map with `:time-period` (LocalDate), `:obs-value` (double), and all dimension columns from the ECB CSV response. No additional dependencies — uses `data.csv` and JDK HTTP.
 

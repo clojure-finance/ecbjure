@@ -25,6 +25,11 @@
     (let [obs (sdmx/parse-sdmx-csv sample-csv-lines {})
           monthly (last obs)]
       (is (= (LocalDate/of 2024 1 1) (:time-period monthly)))))
+  (testing "time-period is Jan 1 for annual (YYYY)"
+    (let [annual-lines ["KEY,TIME_PERIOD,OBS_VALUE"
+                        "foo,2023,1.23"]
+          obs (first (sdmx/parse-sdmx-csv annual-lines {}))]
+      (is (= (LocalDate/of 2023 1 1) (:time-period obs)))))
   (testing "obs-value is double by default"
     (let [obs (first (sdmx/parse-sdmx-csv sample-csv-lines {}))]
       (is (= 1.0942 (:obs-value obs)))))
@@ -36,6 +41,22 @@
       (is (= "USD" (:currency obs)))
       (is (= "D" (:freq obs))))))
 
+(deftest parse-na-values
+  (testing "NaN and N/A are skipped by default"
+    (let [lines ["KEY,TIME_PERIOD,OBS_VALUE"
+                 "a,2023-01-02,NaN"
+                 "b,2023-01-03,N/A"
+                 "c,2023-01-04,"]
+          obs (sdmx/parse-sdmx-csv lines {})]
+      (is (= 0 (count obs)))))
+  (testing "custom na-values are skipped"
+    (let [lines ["KEY,TIME_PERIOD,OBS_VALUE"
+                 "a,2023-01-02,MISSING"
+                 "b,2023-01-03,1.5"]
+          obs (sdmx/parse-sdmx-csv lines {:na-values #{"MISSING"}})]
+      (is (= 1 (count obs)))
+      (is (= 1.5 (:obs-value (first obs)))))))
+
 (deftest parse-missing-column
   (testing "throws on missing TIME_PERIOD"
     (is (thrown-with-msg? clojure.lang.ExceptionInfo #"Missing TIME_PERIOD"
@@ -44,7 +65,13 @@
 (deftest series-key-constants
   (testing "exr-daily starts with EXR"
     (is (clojure.string/starts-with? sdmx/exr-daily "EXR")))
+  (testing "exr-monthly starts with EXR"
+    (is (clojure.string/starts-with? sdmx/exr-monthly "EXR")))
   (testing "hicp-euro-area starts with ICP"
     (is (clojure.string/starts-with? sdmx/hicp-euro-area "ICP")))
   (testing "euribor-3m starts with FM"
-    (is (clojure.string/starts-with? sdmx/euribor-3m "FM"))))
+    (is (clojure.string/starts-with? sdmx/euribor-3m "FM")))
+  (testing "euribor-1w starts with FM"
+    (is (clojure.string/starts-with? sdmx/euribor-1w "FM")))
+  (testing "estr-daily starts with FM"
+    (is (clojure.string/starts-with? sdmx/estr-daily "FM"))))
