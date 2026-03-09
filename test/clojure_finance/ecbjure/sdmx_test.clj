@@ -62,6 +62,12 @@
     (is (thrown-with-msg? clojure.lang.ExceptionInfo #"Missing TIME_PERIOD"
                           (sdmx/parse-sdmx-csv ["OBS_VALUE\n1.0"] {})))))
 
+(deftest parse-empty-rows
+  (testing "header-only input returns empty result"
+    (let [lines ["KEY,TIME_PERIOD,OBS_VALUE"]
+          obs (sdmx/parse-sdmx-csv lines {})]
+      (is (= 0 (count obs))))))
+
 (deftest series-key-constants
   (testing "exr-daily starts with EXR"
     (is (clojure.string/starts-with? sdmx/exr-daily "EXR")))
@@ -130,7 +136,10 @@
            (sdmx/build-series-key "EXR" ["D" #{"USD" "JPY"} "EUR" "SP00" "A"]))))
   (testing "multiple nils"
     (is (= "EXR/D.USD..."
-           (sdmx/build-series-key "EXR" ["D" "USD" nil nil nil])))))
+           (sdmx/build-series-key "EXR" ["D" "USD" nil nil nil]))))
+  (testing "empty set dimension becomes wildcard"
+    (is (= "EXR/D..EUR.SP00.A"
+           (sdmx/build-series-key "EXR" ["D" #{} "EUR" "SP00" "A"])))))
 
 (deftest exr-series-key-test
   (testing "defaults produce daily all-currencies key"
@@ -147,4 +156,8 @@
            (sdmx/exr-series-key {:freq "M" :currency "GBP"}))))
   (testing "custom currency-denom"
     (is (= "EXR/D.USD.CHF.SP00.A"
-           (sdmx/exr-series-key {:currency "USD" :currency-denom "CHF"})))))
+           (sdmx/exr-series-key {:currency "USD" :currency-denom "CHF"}))))
+  (testing "all keys overridden"
+    (is (= "EXR/M.GBP.CHF.SP01.B"
+           (sdmx/exr-series-key {:freq "M" :currency "GBP" :currency-denom "CHF"
+                                 :exr-type "SP01" :exr-suffix "B"})))))

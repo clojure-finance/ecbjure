@@ -94,9 +94,12 @@
                                 {:currency currency :date effective-date})))))))))
 
 (defn get-rate
-  "Return the EUR-referenced rate for currency on date."
+  "Return the EUR-referenced rate for currency on date.
+   For the ref-currency itself (EUR), always returns 1.0."
   [converter currency date]
-  (lookup-rate converter currency (coerce-date date)))
+  (if (= currency (:ref-currency converter))
+    ((:cast-fn (:options converter)) 1)
+    (lookup-rate converter currency (coerce-date date))))
 
 (defn rate-history
   "Return the full sorted-map of {date rate} for a currency."
@@ -105,11 +108,14 @@
       (throw (ex-info "Unknown currency" {:currency currency}))))
 
 (defn cross-rate
-  "Return the cross rate from currency-a to currency-b on date."
+  "Return the cross rate from currency-a to currency-b on date.
+   Handles ref-currency (EUR) as either argument, returning 1/rate or rate directly."
   [converter currency-a currency-b date]
   (let [d (coerce-date date)
-        ra (lookup-rate converter currency-a d)
-        rb (lookup-rate converter currency-b d)]
+        ref (:ref-currency converter)
+        one ((:cast-fn (:options converter)) 1)
+        ra (if (= currency-a ref) one (lookup-rate converter currency-a d))
+        rb (if (= currency-b ref) one (lookup-rate converter currency-b d))]
     (/ rb ra)))
 
 (defn convert

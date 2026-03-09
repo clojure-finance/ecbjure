@@ -7,16 +7,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+- `fx/get-rate` — threw `Unknown currency` when called with the ref-currency (`"EUR"`); now returns `cast-fn(1)` directly
+- `fx/cross-rate` — threw `Unknown currency` when either argument was the ref-currency (`"EUR"`); now substitutes `1` for the EUR leg before dividing
+
 ### Added
 - `clojure-finance.ecbjure.sdmx/list-dataflows` — fetches all ~100 available ECB SDMX dataflows and returns a sorted map of `id → description`; parses SDMX 2.1 XML via JDK DOM (`javax.xml.parsers`) — no new dependencies
-- `list-dataflows-parse` test in `sdmx_test.clj` — fully offline, 3 assertions using an inline XML fixture; SDMX test suite now 6 tests, 26 assertions
+- `list-dataflows-parse` test in `sdmx_test.clj` — fully offline, 3 assertions using an inline XML fixture
 - `clojure-finance.ecbjure.sdmx/build-series-key` — compiles a dataflow name + dimensions vector into an SDMX series-key string; dimensions may be strings, `nil` (wildcard), or sets (sorted `+`-joined multi-value)
 - `clojure-finance.ecbjure.sdmx/exr-series-key` — EXR convenience builder; accepts a map with named keys (`:freq`, `:currency`, `:currency-denom`, `:exr-type`, `:exr-suffix`) with sensible defaults
-- `build-series-key-test` and `exr-series-key-test` in `sdmx_test.clj` — 9 assertions; SDMX test suite now 8 tests, 35 assertions
 
 ### Changed
 - `:fallback-on-wrong-date` (boolean) replaced by `:fallback` keyword — accepts `false` (default, throw on out-of-bounds), `:nearest`, `:before`, `:after`; `true` is a backward-compat alias for `:nearest`
-- `fx_test.clj` — updated fallback tests to cover all three modes; error-message expectations corrected to `"Date outside currency bounds"` for out-of-bounds dates
+- `fx_test.clj` — expanded to 73 assertions across 8 deftest blocks; added fallback symmetry tests (both directions for `:before` and `:after`), `get-rate` on `"EUR"` (returns 1.0), `cross-rate` with `"EUR"` as either argument, `rate-history-sorted-test` asserting `PersistentTreeMap`
+- `sdmx_test.clj` — expanded to 9 deftest blocks; added `parse-empty-rows` (header-only input), `build-series-key` empty-set wildcard case, `exr-series-key` all-keys-overridden case; total 16 tests, 73 assertions
 
 ## [0.1.2] - 2026-03-09
 

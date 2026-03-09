@@ -97,9 +97,15 @@ com.github.clojure-finance/ecbjure {:mvn/version "0.1.2"}
 (fx/get-rate c "USD" (LocalDate/of 2014 3 28))
 ;; => 1.3759
 
-;; Implied cross rate (not through EUR amounts, just the ratio)
+;; get-rate on the ref-currency always returns 1.0
+(fx/get-rate c "EUR" (LocalDate/of 2014 3 28))
+;; => 1.0
+
+;; Cross rate between any two currencies — EUR may appear as either argument
 (fx/cross-rate c "USD" "GBP" (LocalDate/of 2014 3 28))
 ;; => 0.5999...
+(fx/cross-rate c "EUR" "USD" (LocalDate/of 2014 3 28))
+;; => 1.3759
 
 ;; Full sorted date→rate history for a currency
 (fx/rate-history c "USD")
