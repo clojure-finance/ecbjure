@@ -7,6 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.1.4] - 2026-03-09
+
+### Fixed
+- cljdoc API analysis failure (attempt 2): rebuilt jar without `dataset.clj` after `src-dataset/` move was not reflected in stale artifact
+
 ## [0.1.3] - 2026-03-09
 
 ### Fixed
