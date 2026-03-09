@@ -8,6 +8,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- `clojure-finance.ecbjure.sdmx/get-series` — fetch any ECB SDMX series via the REST API; returns a vector of observation maps with `:time-period` (LocalDate) and `:obs-value` (double), plus all CSV dimension columns
+- `clojure-finance.ecbjure.sdmx/parse-sdmx-csv` — parse SDMX CSV lines (format=csvdata) into observation maps; handles daily, monthly, and annual TIME_PERIOD formats
+- Predefined series-key constants: `exr-daily`, `exr-monthly`, `euribor-1w`, `euribor-1m`, `euribor-3m`, `euribor-6m`, `euribor-1y`, `euribor-overnight`, `estr-daily`, `hicp-euro-area`
+- `sdmx_test.clj` — 3 tests, 12 assertions; fully offline using in-memory fixture data
+
+### Changed
+- `README.md` — added SDMX Client section with usage examples and constant listing
+- Removed date-based caching from roadmap (local file path already covers legitimate use cases)
+
+## [Unreleased - dataset]
+
+### Added
 - `clojure-finance.ecbjure.dataset/rates-wide` — TMD dataset in wide format (rows = dates, columns = currency codes)
 - `clojure-finance.ecbjure.dataset/rates-long` — TMD dataset in tidy/long format (columns: `:date`, `:currency`, `:rate`)
 - `:dataset` alias in `deps.edn` for `techascent/tech.ml.dataset 7.066` — optional, not a core dependency

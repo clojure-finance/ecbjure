@@ -15,6 +15,7 @@ A pure Clojure library for accessing European Central Bank (ECB) data, starting 
 - Load from ECB URL (default), local file, or any custom URL
 - Functional, data-oriented design — the converter is a plain Clojure map
 - No interpolation of missing rates — missing data throws, never fabricates
+- **SDMX client** — fetch interest rates, inflation, and other ECB series via `clojure-finance.ecbjure.sdmx`
 - `tech.ml.dataset` integration — wide and tidy/long format datasets (optional alias)
 
 ## Installation
@@ -199,8 +200,30 @@ Options: `--to <currency>`, `--date <yyyy-MM-dd>`, `--source <url-or-path>`.
 
 ## Roadmap
 
-- **Tier 2:** Thin SDMX REST client for broader ECB data — interest rates (ECB key rates, EURIBOR, €STR), inflation (HICP), money supply (M1/M2/M3), yield curves, banking statistics.
-- **Enhancements:** `clj-yfinance` integration for live spot rates, date-based caching.
+- **Enhancements:** `clj-yfinance` integration for live spot rates.
+
+## SDMX Client
+
+Access broader ECB statistical data via `clojure-finance.ecbjure.sdmx`:
+
+```clojure
+(require '[clojure-finance.ecbjure.sdmx :as sdmx])
+
+;; EURIBOR 3-month, last 3 months
+(sdmx/get-series sdmx/euribor-3m {:last-n 3})
+;; => [{:time-period #object[LocalDate "2025-12-01"] :obs-value 2.0457 :currency "EUR" ...} ...]
+
+;; Euro area HICP inflation since 2020
+(sdmx/get-series sdmx/hicp-euro-area {:start-period "2020-01"})
+
+;; Arbitrary ECB SDMX series key
+(sdmx/get-series "EXR/D.USD.EUR.SP00.A"
+                 {:start-period "2024-01-01" :end-period "2024-01-31"})
+```
+
+**Predefined constants:** `exr-daily`, `exr-monthly`, `euribor-1m`, `euribor-3m`, `euribor-6m`, `euribor-1y`, `euribor-overnight`, `estr-daily`, `hicp-euro-area`.
+
+Each observation is a map with `:time-period` (LocalDate), `:obs-value` (double), and all dimension columns from the ECB CSV response. No additional dependencies — uses `data.csv` and JDK HTTP.
 
 ## License
 
