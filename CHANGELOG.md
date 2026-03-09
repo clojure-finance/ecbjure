@@ -10,7 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [0.1.3] - 2026-03-09
 
 ### Fixed
-- cljdoc API analysis failure: `techascent/tech.ml.dataset` added to POM with `provided` scope so cljdoc can analyze `clojure-finance.ecbjure.dataset` without users pulling in the optional dependency
+- cljdoc API analysis failure: `clojure-finance.ecbjure.dataset` moved to `src-dataset/` source tree, excluded from the default jar; activate via `:dataset` / `:test-dataset` aliases as before
 - `fx/get-rate` — threw `Unknown currency` when called with the ref-currency (`"EUR"`); now returns `cast-fn(1)` directly
 - `fx/cross-rate` — threw `Unknown currency` when either argument was the ref-currency (`"EUR"`); now substitutes `1` for the EUR leg before dividing
 

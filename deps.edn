@@ -9,10 +9,11 @@
         :main-opts ["-m" "clojure-finance.ecbjure.cli"]}
   :test {:extra-deps {lambdaisland/kaocha {:mvn/version "1.91.1392"}}
          :extra-paths ["test"]}
-  :dataset {:extra-deps {techascent/tech.ml.dataset {:mvn/version "7.066"}}}
+  :dataset {:extra-deps {techascent/tech.ml.dataset {:mvn/version "7.066"}}
+            :extra-paths ["src-dataset"]}
   :test-dataset {:extra-deps {techascent/tech.ml.dataset {:mvn/version "7.066"}
                               lambdaisland/kaocha {:mvn/version "1.91.1392"}}
-                 :extra-paths ["test"]}
+                 :extra-paths ["src-dataset" "test"]}
   :build {:deps {io.github.clojure/tools.build {:mvn/version "0.10.5"}
                  slipset/deps-deploy {:mvn/version "0.2.2"}}
           :ns-default build}}}

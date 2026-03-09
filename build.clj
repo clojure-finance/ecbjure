@@ -23,12 +23,7 @@
                             [:license
                              ["name" "Eclipse Public License 2.0"]
                              [:url "https://www.eclipse.org/legal/epl-2.0/"]]]
-                           [:dependencies
-                            [:dependency
-                             [:groupId "techascent"]
-                             [:artifactId "tech.ml.dataset"]
-                             [:version "7.066"]
-                             [:scope "provided"]]]
+
                            [:scm
                             [:url "https://github.com/clojure-finance/ecbjure"]
                             [:connection "scm:git:git://github.com/clojure-finance/ecbjure.git"]
