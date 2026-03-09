@@ -73,7 +73,7 @@ to load from a local file or a custom source instead.
 | Key | Default | Description |
 |-----|---------|-------------|
 | `:cast-fn` | `double` | Rate coercion function. Pass `bigdec` for exact arithmetic. |
-| `:fallback` | `false` | Out-of-bounds date behaviour: `false` (throw), `:nearest`, `:before`, `:after`, or `true` (alias for `:nearest`). |
+| `:fallback` | `false` | What to do when a date has no rate (weekend/holiday) or falls outside the dataset bounds. `false` throws an exception (safe default). `:nearest` uses the closest available date. `:before` uses the most recent date before the requested one. `:after` uses the earliest date after it. `true` is an alias for `:nearest`. See [Handling Missing Dates](#handling-missing-dates). |
 | `:ref-currency` | `"EUR"` | Triangulation pivot. |
 
 ### Converting amounts
@@ -153,13 +153,45 @@ All errors are `ex-info`. Inspect `(ex-data e)` for context:
 ;; => {:currency "USD", :date #object[LocalDate "2024-01-06"]}
 ```
 
-To clamp out-of-bounds dates to the nearest available observation instead of throwing:
+### Handling Missing Dates
+
+ECB rates are published on business days only — weekends and public holidays have no
+rate. By default ecbjure throws when asked for a date with no rate, which makes missing
+data visible rather than silently wrong.
+
+If you need gap-free results (e.g. when iterating over calendar days or joining to a
+daily price series), opt in to a fallback strategy at construction time:
 
 ```clojure
+;; :nearest — use the closest available date in either direction
 (def c (fx/make-converter fx/ecb-url {:fallback :nearest}))
+
+;; :before — use the most recent available date before the requested one
+;;           (equivalent to "last known rate" / forward-fill)
+(def c (fx/make-converter fx/ecb-url {:fallback :before}))
+
+;; :after — use the earliest available date after the requested one
+(def c (fx/make-converter fx/ecb-url {:fallback :after}))
 ```
 
-`:before` and `:after` let you control the clamping direction explicitly.
+With a fallback converter, weekend and holiday dates resolve silently:
+
+```clojure
+;; Saturday 2024-01-06 — falls back to Friday 2024-01-05
+(fx/convert c 100 "USD" "EUR" (LocalDate/of 2024 1 6))
+;; => 91.41...
+
+;; New Year's Day 2024-01-01 — falls back to Friday 2023-12-29
+(fx/convert c 100 "USD" "EUR" (LocalDate/of 2024 1 1))
+;; => 90.56...
+```
+
+The fallback applies to both out-of-bounds dates (before the first or after the last
+available date) and in-bounds dates with no observation (weekends/holidays).
+
+> **Backtesting note:** `:before` is the only look-ahead-safe choice — it uses the rate
+> that would have been known at the time. `:nearest` and `:after` can pull in future
+> rates, which introduces look-ahead bias in historical simulations.
 
 ---
 
