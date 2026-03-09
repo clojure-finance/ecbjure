@@ -22,7 +22,7 @@ A pure Clojure library for accessing European Central Bank (ECB) data, starting 
 
 ```clojure
 ;; deps.edn
-com.github.clojure-finance/ecbjure {:mvn/version "0.1.2"}
+com.github.clojure-finance/ecbjure {:mvn/version "0.1.3"}
 ```
 
 ## Quick Start

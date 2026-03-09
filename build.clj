@@ -3,7 +3,7 @@
             [deps-deploy.deps-deploy :as dd]))
 
 (def lib 'com.github.clojure-finance/ecbjure)
-(def version "0.1.2")
+(def version "0.1.3")
 (def class-dir "target/classes")
 (def basis (delay (b/create-basis {:project "deps.edn"})))
 (def jar-file (format "target/%s-%s.jar" (name lib) version))
@@ -23,6 +23,12 @@
                             [:license
                              ["name" "Eclipse Public License 2.0"]
                              [:url "https://www.eclipse.org/legal/epl-2.0/"]]]
+                           [:dependencies
+                            [:dependency
+                             [:groupId "techascent"]
+                             [:artifactId "tech.ml.dataset"]
+                             [:version "7.066"]
+                             [:scope "provided"]]]
                            [:scm
                             [:url "https://github.com/clojure-finance/ecbjure"]
                             [:connection "scm:git:git://github.com/clojure-finance/ecbjure.git"]
