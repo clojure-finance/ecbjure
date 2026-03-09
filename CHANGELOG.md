@@ -11,6 +11,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `clojure-finance.ecbjure.dataset/rates-wide` — TMD dataset in wide format (rows = dates, columns = currency codes)
 - `clojure-finance.ecbjure.dataset/rates-long` — TMD dataset in tidy/long format (columns: `:date`, `:currency`, `:rate`)
 - `:dataset` alias in `deps.edn` for `techascent/tech.ml.dataset 7.066` — optional, not a core dependency
+- `:test-dataset` alias in `deps.edn` — kaocha + tech.ml.dataset for running dataset tests
+- `dataset_test.clj` — 2 tests, 17 assertions covering shape, values, column names, EUR rows, and sort order
 
 ## [0.1.1] - 2026-03-08
 
