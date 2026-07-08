@@ -7,6 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.1.5] - 2026-07-08
+
+### Fixed
+- All HTTP fetches (`fx/make-converter`, `sdmx/get-series`, `sdmx/list-dataflows`) now apply connect/read timeouts (10 s / 30 s defaults). Previously they used `java.net.URL/openStream`, which has no timeouts — a stalled ECB transfer would block the calling thread forever (and hang AOT compilation in consumers that build a converter at namespace load). A stalled fetch now throws `java.net.SocketTimeoutException`.
+- The daily file (`fx/ecb-daily-url`, eurofxref.zip) failed to parse: its fields are space-padded and every row ends with a trailing comma, so `parse-ecb-csv` threw `NumberFormatException: empty String`. Currency names and rate values are now trimmed and the blank final column is dropped.
+
+### Added
+- `clojure-finance.ecbjure.http` — internal fetch helpers; rebind `*connect-timeout-ms*` / `*read-timeout-ms*` to override the defaults
+
 ## [0.1.4] - 2026-03-09
 
 ### Fixed

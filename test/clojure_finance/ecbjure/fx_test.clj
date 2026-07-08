@@ -121,6 +121,19 @@
 (deftest rate-history-sorted-test
   (is (instance? clojure.lang.PersistentTreeMap (fx/rate-history c "USD"))))
 
+(deftest daily-file-format-test
+  ;; The eurofxref.zip daily file pads fields with spaces, uses long dates,
+  ;; and ends every row with a trailing comma (blank final column).
+  (let [lines ["Date, USD, JPY, GBP, "
+               "07 July 2026, 1.1433, 185.09, 0.85411, "]
+        dc (fx/make-converter-from-lines lines)
+        d (LocalDate/of 2026 7 7)]
+    (testing "currency names are trimmed and the blank column is dropped"
+      (is (= #{"EUR" "USD" "JPY" "GBP"} (:currencies dc))))
+    (testing "padded rate values parse"
+      (is (approx= 1.1433 (fx/get-rate dc "USD" d)))
+      (is (approx= 185.09 (fx/get-rate dc "JPY" d))))))
+
 (deftest cross-rate-test
   (is (approx= (/ 0.8629 1.0963) (fx/cross-rate c "USD" "GBP" d02)))
   (is (approx= (/ 1.0 1.0963) (fx/cross-rate c "USD" "EUR" d02)))

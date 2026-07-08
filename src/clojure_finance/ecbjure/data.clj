@@ -1,6 +1,7 @@
 (ns clojure-finance.ecbjure.data
   (:require [clojure.data.csv :as csv]
-            [clojure.java.io :as io])
+            [clojure.java.io :as io]
+            [clojure-finance.ecbjure.http :as http])
   (:import [java.io BufferedReader InputStreamReader]
            [java.time LocalDate]
            [java.time.format DateTimeFormatter]
@@ -17,8 +18,9 @@
     (LocalDate/parse s long-date-fmt)))
 
 (defn- parse-rate [^String s cast-fn na-values]
-  (when-not (na-values s)
-    (cast-fn (Double/parseDouble s))))
+  (let [s (clojure.string/trim s)]
+    (when-not (na-values s)
+      (cast-fn (Double/parseDouble s)))))
 
 (defn parse-ecb-csv
   "Parse ECB CSV lines into a rates map {currency (sorted-map date rate)}.
@@ -28,7 +30,10 @@
                cast-fn double}}]
   (let [rows (csv/read-csv (clojure.string/join "\n" lines))
         [header & data-rows] rows
-        currencies (rest header)]
+        ;; The daily file pads fields with spaces and ends rows with a
+        ;; trailing comma, yielding a blank final column — trim names and
+        ;; skip that column.
+        currencies (map clojure.string/trim (rest header))]
     (reduce
      (fn [acc row]
        (let [date-str (first row)
@@ -38,7 +43,8 @@
            (let [date (parse-date date-str)]
              (reduce
               (fn [acc [currency rate-str]]
-                (if-let [rate (parse-rate rate-str cast-fn na-values)]
+                (if-let [rate (when (seq currency)
+                                (parse-rate rate-str cast-fn na-values))]
                   (update acc currency
                           (fn [m] (assoc (or m (sorted-map)) date rate)))
                   acc))
@@ -62,10 +68,6 @@
 (defn lines-from-stream [stream]
   (reader-lines stream))
 
-(defn- fetch-bytes [url-str]
-  (with-open [in (.openStream (java.net.URL. url-str))]
-    (.readAllBytes in)))
-
 (defn load-lines
   "Load CSV lines from a source:
    - nil → fetch latest data from ECB URL
@@ -76,13 +78,13 @@
   [source]
   (cond
     (nil? source)
-    (let [bs (fetch-bytes "https://www.ecb.europa.eu/stats/eurofxref/eurofxref-hist.zip")]
+    (let [bs (http/fetch-bytes "https://www.ecb.europa.eu/stats/eurofxref/eurofxref-hist.zip")]
       (lines-from-zip-bytes bs))
 
     (and (string? source)
          (or (clojure.string/starts-with? source "http://")
              (clojure.string/starts-with? source "https://")))
-    (let [bs (fetch-bytes source)]
+    (let [bs (http/fetch-bytes source)]
       (if (or (clojure.string/ends-with? source ".zip")
               (= (aget bs 0) (byte 0x50)))
         (lines-from-zip-bytes bs)

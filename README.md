@@ -26,7 +26,7 @@ state, no opaque object, and no hidden cache. You can inspect it in the REPL, pa
 through pipelines, and compose it freely.
 
 **Minimal dependencies.** The core library depends only on `org.clojure/data.csv`.
-HTTP fetching (`java.net.URL`), ZIP decompression (`java.util.zip`), XML parsing
+HTTP fetching (`java.net.URLConnection`), ZIP decompression (`java.util.zip`), XML parsing
 (`javax.xml.parsers`), and date arithmetic (`java.time`) all use the JDK directly —
 no third-party HTTP client or XML library needed. Optional features (dataset output, CLI)
 are gated behind aliases and never pulled into your project unless you need them.
@@ -41,7 +41,7 @@ else the ECB publishes. One consistent API, the same data-oriented design.
 
 ```clojure
 ;; deps.edn
-com.github.clojure-finance/ecbjure {:mvn/version "0.1.4"}
+com.github.clojure-finance/ecbjure {:mvn/version "0.1.5"}
 ```
 
 ---
@@ -151,6 +151,20 @@ All errors are `ex-info`. Inspect `(ex-data e)` for context:
   (catch clojure.lang.ExceptionInfo e
     (ex-data e)))
 ;; => {:currency "USD", :date #object[LocalDate "2024-01-06"]}
+```
+
+### Network Timeouts
+
+All HTTP fetches use a 10 s connect timeout and a 30 s read timeout, so a stalled
+ECB transfer throws `java.net.SocketTimeoutException` instead of blocking the calling
+thread forever. Rebind the dynamic vars in `clojure-finance.ecbjure.http` to override:
+
+```clojure
+(require '[clojure-finance.ecbjure.http :as http])
+
+(binding [http/*connect-timeout-ms* 5000
+          http/*read-timeout-ms* 60000]
+  (fx/make-converter))
 ```
 
 ### Handling Missing Dates

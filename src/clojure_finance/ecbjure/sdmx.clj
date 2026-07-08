@@ -1,9 +1,9 @@
 (ns clojure-finance.ecbjure.sdmx
   (:require [clojure.data.csv :as csv]
             [clojure.java.io :as io]
-            [clojure.string :as str])
+            [clojure.string :as str]
+            [clojure-finance.ecbjure.http :as http])
   (:import [java.io BufferedReader ByteArrayInputStream InputStreamReader]
-           [java.net URI]
            [java.time LocalDate YearMonth]
            [java.time.format DateTimeFormatter]
            [javax.xml.parsers DocumentBuilderFactory]))
@@ -97,7 +97,7 @@
   (build-series-key "EXR" [freq currency currency-denom exr-type exr-suffix]))
 
 (defn- fetch-csv-lines [url-str]
-  (with-open [stream (.openStream (.toURL (URI/create url-str)))
+  (with-open [stream (http/open-stream url-str)
               rdr (BufferedReader. (InputStreamReader. stream "UTF-8"))]
     (doall (line-seq rdr))))
 
@@ -176,10 +176,6 @@
 (def ^:private sdmx-com-ns
   "http://www.sdmx.org/resources/sdmxml/schemas/v2_1/common")
 
-(defn- fetch-bytes [^String url-str]
-  (with-open [s (.openStream (.toURL (URI/create url-str)))]
-    (.readAllBytes s)))
-
 (defn- node-seq [^org.w3c.dom.NodeList nl]
   (for [i (range (.getLength nl))] (.item nl i)))
 
@@ -210,4 +206,4 @@
      \"FM\"  \"Financial Markets\"
      ...}"
   []
-  (parse-dataflow-xml (fetch-bytes dataflows-url)))
+  (parse-dataflow-xml (http/fetch-bytes dataflows-url)))
