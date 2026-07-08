@@ -8,12 +8,14 @@
   :cli {:extra-deps {org.clojure/tools.cli {:mvn/version "1.1.230"}}
         :main-opts ["-m" "clojure-finance.ecbjure.cli"]}
   :test {:extra-deps {lambdaisland/kaocha {:mvn/version "1.91.1392"}}
-         :extra-paths ["test"]}
+         :extra-paths ["test"]
+         :main-opts ["-m" "kaocha.runner" "unit"]}
   :dataset {:extra-deps {techascent/tech.ml.dataset {:mvn/version "7.066"}}
             :extra-paths ["src-dataset"]}
   :test-dataset {:extra-deps {techascent/tech.ml.dataset {:mvn/version "7.066"}
                               lambdaisland/kaocha {:mvn/version "1.91.1392"}}
-                 :extra-paths ["src-dataset" "test"]}
+                 :extra-paths ["src-dataset" "test" "test-dataset"]
+                 :main-opts ["-m" "kaocha.runner"]}
   :build {:deps {io.github.clojure/tools.build {:mvn/version "0.10.5"}
                  slipset/deps-deploy {:mvn/version "0.2.2"}}
           :ns-default build}}}
