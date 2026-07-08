@@ -7,6 +7,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+- License changed from Eclipse Public License 2.0 to Apache License 2.0 (`LICENSE`, POM metadata)
+
 ## [0.1.5] - 2026-07-08
 
 ### Fixed
